@@ -3,17 +3,33 @@
     hosts: all
     gather_facts: yes
     tasks:
+
+      - name: Install Apache
+        yum:
+          name: httpd
+          state: latest
+        when: inventory_hostname in groups['webservers']
+
+      - name: Start and enable Apache service
+        service:
+          name: httpd
+          state: started
+          enabled: yes
+        when: inventory_hostname in groups['webservers']
       
       - name: Install HAProxy
         yum:
           name: haproxy
-          state: absent
+          state: latest
+        when: inventory_hostname in groups['lbserver']
 
       - name: start and enable HAProxy
         service:
           name: haproxy
-          state: stopped
-          enabled: no
+          state: started
+          enabled: yes 
+        when: inventory_hostname in groups['lbserver']
+
 
       - name: template out the HAProxy config
         template:
@@ -34,5 +50,6 @@
         service:
           name: haproxy
           state: restarted
-      
+        delegate_to: "{{ item }}"
+        with_items: "{{ groups['lbserver'] }}"
 

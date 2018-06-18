@@ -1,0 +1,11 @@
+---
+  - name: Cleanup all packages
+    hosts: all
+
+    tasks:
+      - name: remove apache and haproxy packages
+        yum:
+          name:
+            - httpd
+            - haproxy
+          state: absent
