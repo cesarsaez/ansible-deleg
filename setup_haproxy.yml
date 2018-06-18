@@ -1,0 +1,38 @@
+---
+  - name: Setup HAProxy lab
+    hosts: all
+    gather_facts: yes
+    tasks:
+      
+      - name: Install HAProxy
+        yum:
+          name: haproxy
+          state: absent
+
+      - name: start and enable HAProxy
+        service:
+          name: haproxy
+          state: stopped
+          enabled: no
+
+      - name: template out the HAProxy config
+        template:
+          src: haproxy.cfg.j2
+          dest: /etc/haproxy/haproxy.cfg
+          owner: root
+          group: root
+          mode: 644
+          backup: yes
+        delegate_to: "{{ item }}"
+        delegate_facts: yes
+        with_items: "{{ groups['lbserver'] }}"
+        notify:
+          - restart_haproxy
+
+    handlers:
+      - name: restart_haproxy
+        service:
+          name: haproxy
+          state: restarted
+      
+
